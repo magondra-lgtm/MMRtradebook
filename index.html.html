@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TradeBook">
+<title>TradeBook</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#F4F1EC;--surface:#FFFFFF;--surface2:#F9F7F4;
+  --border:#E8E3DB;--border2:#D4CEC5;
+  --text:#1C1917;--text2:#6B6560;--text3:#A09990;
+  --orange:#D4611A;--orange-light:#FDF0E8;--orange-dark:#B5510F;
+  --green:#2A7A50;--green-light:#E8F5EE;
+  --blue:#1C5FA0;--blue-light:#E8F0FB;
+  --amber:#9A6E0A;--amber-light:#FBF4E3;
+  --red:#C0392B;--red-light:#FDECEA;
+  --tab-h:72px;--header-h:60px;
+  --radius:14px;--radius-sm:10px;--radius-lg:20px;
+  --shadow:0 2px 8px rgba(0,0,0,.08);--shadow-lg:0 8px 32px rgba(0,0,0,.12);
+}
+
+html,body{height:100%;overflow:hidden;background:var(--bg);}
+body{font-family:'Figtree',sans-serif;color:var(--text);font-size:16px;}
+
+/* ── LAYOUT ── */
+#app{display:flex;flex-direction:column;height:100%;height:100dvh;}
+#screen{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;background:var(--bg);}
+#screen::-webkit-scrollbar{display:none;}
+
+/* ── HEADER ── */
+.hdr{background:var(--text);color:#fff;height:var(--header-h);display:flex;align-items:center;padding:0 18px;gap:12px;position:sticky;top:0;z-index:50;flex-shrink:0;}
+.hdr-brand{font-size:18px;font-weight:800;letter-spacing:-.5px;display:flex;align-items:center;gap:7px;}
+.hdr-brand .accent{color:var(--orange);}
+.hdr-title{font-size:17px;font-weight:700;flex:1;}
+.hdr-back{background:rgba(255,255,255,.12);border:none;color:#fff;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;flex-shrink:0;}
+.hdr-action{background:var(--orange);border:none;color:#fff;padding:7px 14px;border-radius:20px;font-family:'Figtree',sans-serif;font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0;}
+
+/* ── TAB BAR ── */
+#tabbar{background:var(--surface);border-top:1px solid var(--border);height:var(--tab-h);display:flex;align-items:stretch;flex-shrink:0;padding-bottom:env(safe-area-inset-bottom);}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:none;background:none;cursor:pointer;color:var(--text3);padding:8px 4px 6px;transition:color .15s;}
+.tab.active{color:var(--orange);}
+.tab svg{width:22px;height:22px;}
+.tab span{font-size:10px;font-weight:600;letter-spacing:.02em;}
+
+/* ── PAGE ── */
+.page{display:none;min-height:calc(100dvh - var(--header-h) - var(--tab-h));padding-bottom:16px;}
+.page.active{display:block;}
+.pad{padding:16px;}
+
+/* ── STAT CARDS ── */
+.stat-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+.stat-card{background:var(--surface);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);}
+.stat-label{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px;}
+.stat-val{font-size:22px;font-weight:800;font-family:'JetBrains Mono',monospace;letter-spacing:-.5px;}
+.stat-val.green{color:var(--green);}
+.stat-val.blue{color:var(--blue);}
+.stat-val.orange{color:var(--orange);}
+.stat-val.red{color:var(--red);}
+.stat-sub{font-size:11px;color:var(--text3);margin-top:3px;}
+
+/* ── SECTION HEADER ── */
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.sec-title{font-size:15px;font-weight:700;color:var(--text);}
+.sec-link{font-size:13px;font-weight:600;color:var(--orange);background:none;border:none;cursor:pointer;font-family:inherit;}
+
+/* ── INVOICE LIST ITEMS ── */
+.inv-list{display:flex;flex-direction:column;gap:8px;}
+.inv-item{background:var(--surface);border-radius:var(--radius);padding:14px 16px;box-shadow:var(--shadow);display:flex;align-items:center;gap:12px;cursor:pointer;active:opacity:.8;}
+.inv-item:active{opacity:.7;}
+.inv-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.inv-dot.paid{background:var(--green);}
+.inv-dot.sent{background:var(--blue);}
+.inv-dot.draft{background:var(--text3);}
+.inv-info{flex:1;min-width:0;}
+.inv-co{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.inv-meta{font-size:12px;color:var(--text2);margin-top:2px;}
+.inv-amt{font-size:16px;font-weight:800;font-family:'JetBrains Mono',monospace;color:var(--text);flex-shrink:0;}
+.inv-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:.04em;}
+.inv-badge.paid{background:var(--green-light);color:var(--green);}
+.inv-badge.sent{background:var(--blue-light);color:var(--blue);}
+.inv-badge.draft{background:var(--border);color:var(--text2);}
+
+/* ── BIG ACTION BUTTON ── */
+.big-btn{width:100%;padding:18px;border-radius:var(--radius);font-family:'Figtree',sans-serif;font-size:17px;font-weight:800;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;letter-spacing:-.2px;}
+.big-btn.orange{background:var(--orange);color:#fff;}
+.big-btn.orange:active{background:var(--orange-dark);}
+.big-btn.green{background:var(--green);color:#fff;}
+.big-btn.ghost{background:var(--surface);color:var(--text);border:2px solid var(--border2);}
+.big-btn.ghost:active{background:var(--surface2);}
+.big-btn.red-ghost{background:var(--surface);color:var(--red);border:2px solid #F0BABA;}
+
+/* ── FORM ── */
+.form-section{background:var(--surface);border-radius:var(--radius);padding:16px;margin-bottom:12px;box-shadow:var(--shadow);}
+.form-section-title{font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px;}
+.form-field{margin-bottom:12px;}
+.form-field:last-child{margin-bottom:0;}
+.form-label{font-size:13px;font-weight:600;color:var(--text2);margin-bottom:6px;display:block;}
+.form-input{width:100%;padding:13px 14px;border:2px solid var(--border);border-radius:var(--radius-sm);font-family:'Figtree',sans-serif;font-size:16px;color:var(--text);background:var(--surface);outline:none;-webkit-appearance:none;appearance:none;}
+.form-input:focus{border-color:var(--orange);box-shadow:0 0 0 3px rgba(212,97,26,.1);}
+.form-input.select-wrap{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23A09990' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px;}
+textarea.form-input{min-height:80px;resize:none;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
+/* ── CLIENT PICKER ── */
+.client-chip-wrap{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch;}
+.client-chip-wrap::-webkit-scrollbar{display:none;}
+.client-chip{background:var(--surface2);border:2px solid var(--border);border-radius:20px;padding:8px 14px;font-size:13px;font-weight:600;white-space:nowrap;cursor:pointer;flex-shrink:0;color:var(--text);}
+.client-chip.selected{background:var(--orange-light);border-color:var(--orange);color:var(--orange);}
+.client-chip:active{opacity:.7;}
+
+/* ── LINE ITEMS ── */
+.li-row{background:var(--surface2);border-radius:var(--radius-sm);padding:12px;margin-bottom:8px;}
+.li-top{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.li-type-btn{padding:5px 12px;border-radius:20px;border:2px solid var(--border);font-family:'Figtree',sans-serif;font-size:12px;font-weight:700;cursor:pointer;background:var(--surface);}
+.li-type-btn.labor{background:var(--blue-light);border-color:var(--blue);color:var(--blue);}
+.li-type-btn.materials{background:var(--amber-light);border-color:var(--amber);color:var(--amber);}
+.li-del{margin-left:auto;background:none;border:none;color:var(--text3);font-size:22px;cursor:pointer;line-height:1;padding:2px 6px;}
+.li-inputs{display:grid;grid-template-columns:1fr 70px 80px;gap:8px;}
+.li-input{padding:10px 12px;border:2px solid var(--border);border-radius:8px;font-family:'Figtree',sans-serif;font-size:14px;color:var(--text);background:var(--surface);outline:none;width:100%;}
+.li-input:focus{border-color:var(--orange);}
+
+/* ── TOTALS ── */
+.totals-box{background:var(--text);color:#fff;border-radius:var(--radius);padding:16px;margin-top:4px;}
+.total-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:14px;}
+.total-row.labor{color:#7EB8F0;}
+.total-row.mats{color:#F0C97E;}
+.total-row.tax{color:rgba(255,255,255,.5);font-size:12px;}
+.total-row.grand{font-size:20px;font-weight:800;border-top:1px solid rgba(255,255,255,.2);padding-top:10px;margin-top:6px;}
+.total-amt{font-family:'JetBrains Mono',monospace;font-weight:600;}
+.total-row.grand .total-amt{font-size:22px;}
+
+/* ── TAX RATE INLINE ── */
+.tax-inline{display:flex;align-items:center;gap:8px;color:rgba(255,255,255,.5);font-size:12px;}
+.tax-inline input{width:44px;padding:3px 6px;border-radius:6px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.1);color:#fff;font-family:'JetBrains Mono',monospace;font-size:12px;text-align:center;outline:none;}
+
+/* ── CLIENT CARDS ── */
+.client-card{background:var(--surface);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);margin-bottom:10px;}
+.client-card-top{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+.client-av{width:44px;height:44px;border-radius:50%;background:var(--blue-light);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:var(--blue);flex-shrink:0;}
+.client-name{font-size:15px;font-weight:800;}
+.client-sub{font-size:12px;color:var(--text2);margin-top:1px;}
+.client-detail{font-size:13px;color:var(--text2);margin-bottom:4px;display:flex;align-items:center;gap:6px;}
+.client-actions{display:flex;gap:8px;margin-top:12px;}
+.client-btn{flex:1;padding:10px;border-radius:var(--radius-sm);font-family:'Figtree',sans-serif;font-size:13px;font-weight:700;border:none;cursor:pointer;text-align:center;}
+.client-btn.primary{background:var(--orange);color:#fff;}
+.client-btn.ghost{background:var(--surface2);color:var(--text);border:2px solid var(--border);}
+.client-btn:active{opacity:.7;}
+
+/* ── BOOKKEEPING ── */
+.bk-tax{background:linear-gradient(135deg,#C0392B,#E74C3C);border-radius:var(--radius);padding:20px;margin-bottom:16px;color:#fff;}
+.bk-tax-label{font-size:12px;font-weight:700;opacity:.8;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px;}
+.bk-tax-val{font-size:32px;font-weight:800;font-family:'JetBrains Mono',monospace;letter-spacing:-1px;}
+.bk-tax-sub{font-size:12px;opacity:.7;margin-top:4px;}
+.bar-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);}
+.bar-row:last-child{border-bottom:none;}
+.bar-mo{font-size:12px;font-weight:600;width:30px;color:var(--text2);}
+.bar-track{flex:1;height:8px;background:var(--border);border-radius:4px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:4px;transition:width .4s ease;}
+.bar-amt{font-size:11px;font-family:'JetBrains Mono',monospace;font-weight:600;min-width:60px;text-align:right;}
+
+/* ── SETTINGS ── */
+.settings-section{background:var(--surface);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);margin-bottom:12px;}
+.settings-row{display:flex;align-items:center;padding:16px;border-bottom:1px solid var(--border);gap:14px;}
+.settings-row:last-child{border-bottom:none;}
+.settings-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.settings-row-text{flex:1;}
+.settings-row-label{font-size:15px;font-weight:600;}
+.settings-row-sub{font-size:12px;color:var(--text2);margin-top:1px;}
+.settings-arrow{color:var(--text3);font-size:18px;}
+
+/* ── MODALS ── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:flex-end;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--surface);border-radius:var(--radius-lg) var(--radius-lg) 0 0;width:100%;max-height:90dvh;overflow-y:auto;padding:20px 18px calc(20px + env(safe-area-inset-bottom));box-shadow:0 -8px 40px rgba(0,0,0,.2);}
+.modal-handle{width:36px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 18px;}
+.modal-title{font-size:20px;font-weight:800;margin-bottom:4px;}
+.modal-sub{font-size:14px;color:var(--text2);margin-bottom:18px;}
+.modal-actions{display:flex;flex-direction:column;gap:10px;margin-top:20px;}
+
+/* ── INVOICE DETAIL (full-screen) ── */
+.inv-detail{background:var(--surface);border-radius:var(--radius);padding:20px;margin-bottom:12px;box-shadow:var(--shadow);}
+.inv-detail-header{margin-bottom:18px;}
+.inv-detail-co{font-size:22px;font-weight:800;letter-spacing:-.5px;}
+.inv-detail-num{font-size:13px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-top:2px;}
+.inv-detail-meta{display:flex;gap:16px;margin-top:12px;padding:12px;background:var(--surface2);border-radius:var(--radius-sm);}
+.inv-detail-meta-item{flex:1;}
+.inv-detail-meta-label{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;}
+.inv-detail-meta-val{font-size:13px;font-weight:600;}
+.li-display-row{display:flex;justify-content:space-between;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--border);}
+.li-display-row:last-child{border-bottom:none;}
+.li-display-type{font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;margin-bottom:4px;display:inline-block;}
+.li-display-type.labor{background:var(--blue-light);color:var(--blue);}
+.li-display-type.materials{background:var(--amber-light);color:var(--amber);}
+.li-display-desc{font-size:14px;font-weight:600;}
+.li-display-qty{font-size:12px;color:var(--text2);}
+.li-display-amt{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:14px;}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:calc(var(--tab-h) + 12px);left:16px;right:16px;background:var(--text);color:#fff;padding:14px 18px;border-radius:var(--radius-sm);font-size:14px;font-weight:600;z-index:500;opacity:0;transform:translateY(8px);transition:all .25s;pointer-events:none;text-align:center;}
+.toast.show{opacity:1;transform:translateY(0);}
+.toast.success{background:var(--green);}
+.toast.error{background:var(--red);}
+
+/* ── SEARCH ── */
+.search-bar{display:flex;align-items:center;background:var(--surface);border-radius:var(--radius-sm);padding:11px 14px;gap:10px;box-shadow:var(--shadow);margin-bottom:14px;}
+.search-bar input{flex:1;border:none;outline:none;font-family:'Figtree',sans-serif;font-size:15px;color:var(--text);background:transparent;}
+.search-bar svg{color:var(--text3);flex-shrink:0;}
+
+/* ── EMPTY STATE ── */
+.empty-state{text-align:center;padding:48px 24px;}
+.empty-icon{font-size:48px;margin-bottom:12px;}
+.empty-title{font-size:18px;font-weight:700;margin-bottom:6px;}
+.empty-sub{font-size:14px;color:var(--text2);}
+
+/* ── FILTER TABS ── */
+.filter-tabs{display:flex;gap:6px;margin-bottom:14px;overflow-x:auto;padding-bottom:2px;}
+.filter-tabs::-webkit-scrollbar{display:none;}
+.ftab{padding:7px 14px;border-radius:20px;font-family:'Figtree',sans-serif;font-size:13px;font-weight:700;border:2px solid var(--border);background:var(--surface);color:var(--text2);cursor:pointer;white-space:nowrap;flex-shrink:0;}
+.ftab.active{background:var(--orange);border-color:var(--orange);color:#fff;}
+
+/* ── YEAR SELECTOR ── */
+.year-pills{display:flex;gap:8px;margin-bottom:16px;overflow-x:auto;}
+.year-pills::-webkit-scrollbar{display:none;}
+.ypill{padding:7px 16px;border-radius:20px;font-family:'Figtree',sans-serif;font-size:14px;font-weight:700;border:2px solid var(--border);background:var(--surface);color:var(--text2);cursor:pointer;white-space:nowrap;flex-shrink:0;}
+.ypill.active{background:var(--text);border-color:var(--text);color:#fff;}
+
+/* ── NOTES AREA ── */
+.notes-default-btn{font-size:12px;color:var(--orange);background:none;border:none;font-family:'Figtree',sans-serif;font-weight:600;cursor:pointer;padding:4px 0;display:block;margin-top:4px;}
+
+@media print{
+  #tabbar,#hdr-main,.no-print{display:none!important;}
+  #app{height:auto;overflow:visible;}
+  #screen{overflow:visible;height:auto;}
+  .page{display:block!important;min-height:0;}
+  body{background:#fff;}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="screen">
+
+    <!-- DASHBOARD PAGE -->
+    <div class="page active" id="page-home">
+      <div class="hdr" id="hdr-main">
+        <div class="hdr-brand"><svg width="18" height="18" viewBox="0 0 20 20" fill="none"><rect x="1" y="1" width="18" height="18" rx="4" fill="#D4611A"/><rect x="4.5" y="6" width="11" height="2" rx="1" fill="white"/><rect x="4.5" y="10" width="8" height="2" rx="1" fill="white"/><rect x="4.5" y="14" width="5" height="2" rx="1" fill="white"/></svg>Trade<span class="accent">Book</span></div>
+      </div>
+      <div class="pad">
+        <div class="stat-row" id="home-stats"></div>
+        <div class="sec-hdr">
+          <div class="sec-title">Recent Invoices</div>
+          <button class="sec-link" onclick="goTab('invoices')">See All</button>
+        </div>
+        <div class="inv-list" id="home-recent"></div>
+      </div>
+    </div>
+
+    <!-- NEW INVOICE PAGE -->
+    <div class="page" id="page-new">
+      <div class="hdr">
+        <button class="hdr-back" onclick="cancelNew()">&#8592;</button>
+        <div class="hdr-title" id="new-title">New Invoice</div>
+      </div>
+      <div class="pad">
+        <!-- Client picker -->
+        <div class="form-section">
+          <div class="form-section-title">Customer</div>
+          <div class="client-chip-wrap" id="new-client-chips"></div>
+          <div style="margin-top:12px" id="new-cust-fields">
+            <div class="form-row" style="margin-bottom:10px">
+              <div class="form-field" style="margin:0"><label class="form-label">Company</label><input class="form-input" id="n-co" placeholder="Company name" type="text"></div>
+              <div class="form-field" style="margin:0"><label class="form-label">Contact</label><input class="form-input" id="n-nm" placeholder="Name" type="text"></div>
+            </div>
+            <div class="form-row" style="margin-bottom:10px">
+              <div class="form-field" style="margin:0"><label class="form-label">Phone</label><input class="form-input" id="n-ph" placeholder="405-xxx-xxxx" type="tel"></div>
+              <div class="form-field" style="margin:0"><label class="form-label">Email</label><input class="form-input" id="n-em" placeholder="email@..." type="email"></div>
+            </div>
+            <div class="form-field" style="margin:0"><label class="form-label">Job / Service Address</label><input class="form-input" id="n-ad" placeholder="Where work was done" type="text"></div>
+          </div>
+        </div>
+
+        <!-- Job details -->
+        <div class="form-section">
+          <div class="form-section-title">Job Details</div>
+          <div class="form-row" style="margin-bottom:10px">
+            <div class="form-field" style="margin:0"><label class="form-label">Invoice #</label><input class="form-input" id="n-num" placeholder="Auto" type="text"></div>
+            <div class="form-field" style="margin:0"><label class="form-label">Job Type</label>
+              <select class="form-input select-wrap" id="n-jtype">
+                <option value="">Select...</option><option>Plumbing</option><option>Electrical</option><option>HVAC</option><option>General Contracting</option><option>Roofing</option><option>Carpentry</option><option>Painting</option><option>Drywall</option><option>Flooring</option><option>Lawn Care</option><option>Maintenance</option><option>Other</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row" style="margin-bottom:10px">
+            <div class="form-field" style="margin:0"><label class="form-label">Invoice Date</label><input class="form-input" id="n-idate" type="date"></div>
+            <div class="form-field" style="margin:0"><label class="form-label">Due Date</label><input class="form-input" id="n-ddate" type="date"></div>
+          </div>
+          <div class="form-field" style="margin:0"><label class="form-label">Description</label><textarea class="form-input" id="n-desc" placeholder="Describe the work..."></textarea></div>
+        </div>
+
+        <!-- Line items -->
+        <div class="form-section">
+          <div class="form-section-title">Work &amp; Materials</div>
+          <div id="n-li-wrap"></div>
+          <div style="display:flex;gap:8px;margin-top:4px">
+            <button class="big-btn ghost" style="font-size:15px;padding:13px" onclick="addLI('labor')">+ Labor</button>
+            <button class="big-btn ghost" style="font-size:15px;padding:13px" onclick="addLI('materials')">+ Materials</button>
+          </div>
+          <div class="totals-box" style="margin-top:14px">
+            <div class="total-row labor"><span>Labor</span><span class="total-amt" id="n-lab-sub">$0.00</span></div>
+            <div class="total-row mats"><span>Materials</span><span class="total-amt" id="n-mat-sub">$0.00</span></div>
+            <div class="total-row tax">
+              <div class="tax-inline">Tax <input type="number" id="n-tax" value="0" min="0" max="30" step="0.5" onchange="recalc()"> %</div>
+              <span class="total-amt" id="n-tax-disp">$0.00</span>
+            </div>
+            <div class="total-row grand"><span>Total Due</span><span class="total-amt" id="n-total">$0.00</span></div>
+          </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="form-section">
+          <div class="form-section-title">Notes to Customer</div>
+          <textarea class="form-input" id="n-notes" rows="3">Payment accepted via cash, check, CashApp: $Kevinmckee27, or Venmo: @Kevin-McKee-132. Thank you for your business!</textarea>
+        </div>
+
+        <!-- Actions -->
+        <div style="display:flex;flex-direction:column;gap:10px;padding-bottom:8px">
+          <button class="big-btn orange" onclick="saveAndSend()">&#9993; Save &amp; Send Email</button>
+          <button class="big-btn ghost" onclick="saveDraft()">Save Draft</button>
+          <button class="big-btn ghost" onclick="previewInv()">Preview Invoice</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- INVOICE PREVIEW PAGE -->
+    <div class="page" id="page-preview">
+      <div class="hdr no-print">
+        <button class="hdr-back" onclick="goBack('page-preview')">&#8592;</button>
+        <div class="hdr-title">Preview</div>
+        <button class="hdr-action" onclick="savePDF()">Save PDF</button>
+      </div>
+      <div class="pad" id="preview-content"></div>
+      <div class="pad no-print" style="padding-top:0">
+        <button class="big-btn orange" id="preview-send-btn">&#9993; Send Email</button>
+      </div>
+    </div>
+
+    <!-- INVOICES LIST PAGE -->
+    <div class="page" id="page-invoices">
+      <div class="hdr">
+        <div class="hdr-title">All Invoices</div>
+        <button class="hdr-action" onclick="startNew()">+ New</button>
+      </div>
+      <div class="pad">
+        <div class="search-bar">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.5"/><path d="M10.5 10.5l4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <input type="text" id="inv-search" placeholder="Search invoices..." onkeyup="renderInvList()">
+        </div>
+        <div class="filter-tabs">
+          <button class="ftab active" onclick="setFilter('',this)">All</button>
+          <button class="ftab" onclick="setFilter('draft',this)">Draft</button>
+          <button class="ftab" onclick="setFilter('sent',this)">Sent</button>
+          <button class="ftab" onclick="setFilter('paid',this)">Paid</button>
+        </div>
+        <div class="inv-list" id="inv-list"></div>
+      </div>
+    </div>
+
+    <!-- INVOICE DETAIL PAGE -->
+    <div class="page" id="page-inv-detail">
+      <div class="hdr">
+        <button class="hdr-back" onclick="goBack('page-inv-detail')">&#8592;</button>
+        <div class="hdr-title">Invoice</div>
+      </div>
+      <div class="pad" id="inv-detail-content"></div>
+    </div>
+
+    <!-- CLIENTS PAGE -->
+    <div class="page" id="page-clients">
+      <div class="hdr">
+        <div class="hdr-title">Clients</div>
+        <button class="hdr-action" onclick="openClientModal()">+ Add</button>
+      </div>
+      <div class="pad">
+        <div class="search-bar">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.5"/><path d="M10.5 10.5l4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <input type="text" id="cli-search" placeholder="Search clients..." onkeyup="renderClients()">
+        </div>
+        <div id="cli-list"></div>
+      </div>
+    </div>
+
+    <!-- BOOKKEEPING PAGE -->
+    <div class="page" id="page-bk">
+      <div class="hdr">
+        <div class="hdr-title">Bookkeeping</div>
+        <button class="hdr-action" style="background:rgba(255,255,255,.15);margin-right:6px" onclick="pushPage('page-settings');loadSettingsUI()">⚙️</button>
+        <button class="hdr-action" onclick="exportExcel()">Export XLS</button>
+      </div>
+      <div class="pad">
+        <div class="year-pills" id="year-pills"></div>
+        <div class="bk-tax" id="bk-tax-box">
+          <div class="bk-tax-label">&#9888; Tax Reserve — Set Aside</div>
+          <div class="bk-tax-val" id="bk-tax-val">$0.00</div>
+          <div class="bk-tax-sub" id="bk-tax-sub">20% of labor collected</div>
+        </div>
+        <div class="stat-row" id="bk-stats"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+          <div class="form-section" style="margin:0"><div class="form-section-title">Labor / Month</div><div id="bk-labor-bars"></div></div>
+          <div class="form-section" style="margin:0"><div class="form-section-title">Materials / Month</div><div id="bk-mat-bars"></div></div>
+        </div>
+        <div id="bk-inv-list"></div>
+      </div>
+    </div>
+
+    <!-- SETTINGS PAGE -->
+    <div class="page" id="page-settings">
+      <div class="hdr">
+        <button class="hdr-back" onclick="goBack('page-settings')">&#8592;</button>
+        <div class="hdr-title">Settings</div>
+      </div>
+      <div class="pad">
+        <!-- Backup section -->
+        <div style="background:var(--blue-light);border:2px solid rgba(28,95,160,.2);border-radius:var(--radius);padding:16px;margin-bottom:12px">
+          <div style="font-size:14px;font-weight:800;color:var(--blue);margin-bottom:4px">&#128257; Backup &amp; Restore</div>
+          <div style="font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.6">
+            <strong>To move data to a new device:</strong><br>
+            1. Tap <em>Export Backup</em> on this device<br>
+            2. Send the file to the other device<br>
+            3. Open the app there → Settings → <em>Import Backup</em>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <button class="big-btn green" onclick="exportData()">&#8595; Export Backup File</button>
+            <button class="big-btn ghost" onclick="triggerImport()">&#8593; Import Backup File</button>
+            <input type="file" id="import-file" accept=".json" style="display:none" onchange="loadImportFile(this)">
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="form-section-title">Business Info</div>
+          <div class="form-field"><label class="form-label">Business Name</label><input class="form-input" id="s-bname" type="text"></div>
+          <div class="form-field"><label class="form-label">Owner Name</label><input class="form-input" id="s-owner" type="text"></div>
+          <div class="form-row">
+            <div class="form-field" style="margin:0"><label class="form-label">Phone</label><input class="form-input" id="s-phone" type="tel"></div>
+            <div class="form-field" style="margin:0"><label class="form-label">Email</label><input class="form-input" id="s-email" type="email"></div>
+          </div>
+          <div class="form-field" style="margin-top:10px"><label class="form-label">Address</label><input class="form-input" id="s-addr" type="text"></div>
+          <div class="form-field"><label class="form-label">Next Invoice #</label><input class="form-input" id="s-nextnum" type="number" min="1"></div>
+        </div>
+        <button class="big-btn orange" onclick="saveSettings()">Save Settings</button>
+      </div>
+    </div>
+
+  </div><!-- /screen -->
+
+  <!-- TAB BAR -->
+  <div id="tabbar">
+    <button class="tab active" onclick="goTab('home')" id="tab-home">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12L12 3l9 9M5 10v9a1 1 0 001 1h4v-5h4v5h4a1 1 0 001-1v-9"/></svg>
+      <span>Home</span>
+    </button>
+    <button class="tab" onclick="goTab('invoices')" id="tab-invoices">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 7h8M8 11h8M8 15h5"/></svg>
+      <span>Invoices</span>
+    </button>
+    <button class="tab" onclick="startNew()" id="tab-new" style="position:relative">
+      <div style="width:52px;height:52px;background:var(--orange);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(212,97,26,.4);margin-top:-14px">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+      </div>
+      <span style="margin-top:2px">New</span>
+    </button>
+    <button class="tab" onclick="goTab('clients')" id="tab-clients">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/><path d="M16 3a4 4 0 010 8M21 21v-2a4 4 0 00-3-3.87"/></svg>
+      <span>Clients</span>
+    </button>
+    <button class="tab" onclick="goTab('bookkeeping')" id="tab-bookkeeping">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M6 8h4M6 11h8M6 14h3"/></svg>
+      <span>Books</span>
+    </button>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="mo-send">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Send Invoice</div>
+    <div class="modal-sub" id="mo-send-sub">Send to customer via email.</div>
+    <div class="form-field"><label class="form-label">Customer Email</label><input class="form-input" id="send-email" type="email" placeholder="customer@email.com"></div>
+    <div class="form-field"><label class="form-label">Subject</label><input class="form-input" id="send-subj" type="text"></div>
+    <div class="form-field"><label class="form-label">Message</label><textarea class="form-input" id="send-msg" rows="3">Hi, please find your invoice attached. Thank you for your business!</textarea></div>
+    <div class="modal-actions">
+      <button class="big-btn green" onclick="doSend()">&#9993; Send Now</button>
+      <button class="big-btn ghost" onclick="cm('mo-send')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="mo-paid">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Mark as Paid &#10003;</div>
+    <div class="modal-sub">Record payment details.</div>
+    <div class="form-field"><label class="form-label">Payment Date</label><input class="form-input" id="paid-date" type="date"></div>
+    <div class="form-field"><label class="form-label">How did they pay?</label>
+      <select class="form-input select-wrap" id="paid-method"><option>Check</option><option>Cash</option><option>CashApp</option><option>Venmo</option><option>Bank Transfer</option><option>Credit Card</option></select>
+    </div>
+    <div class="modal-actions">
+      <button class="big-btn green" onclick="doMarkPaid()">Mark Paid</button>
+      <button class="big-btn ghost" onclick="cm('mo-paid')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="mo-client">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="mo-cli-title">Add Client</div>
+    <div class="modal-sub">Saved clients auto-fill new invoices.</div>
+    <div class="form-field"><label class="form-label">Contact Name *</label><input class="form-input" id="cl-name" type="text"></div>
+    <div class="form-field"><label class="form-label">Company Name</label><input class="form-input" id="cl-co" type="text"></div>
+    <div class="form-row">
+      <div class="form-field" style="margin:0"><label class="form-label">Phone</label><input class="form-input" id="cl-ph" type="tel"></div>
+      <div class="form-field" style="margin:0"><label class="form-label">Email</label><input class="form-input" id="cl-em" type="email"></div>
+    </div>
+    <div class="form-field" style="margin-top:10px"><label class="form-label">Address</label><input class="form-input" id="cl-addr" type="text"></div>
+    <div class="form-field"><label class="form-label">Job Type</label>
+      <select class="form-input select-wrap" id="cl-jtype"><option value="">Select...</option><option>Plumbing</option><option>Electrical</option><option>HVAC</option><option>General Contracting</option><option>Roofing</option><option>Carpentry</option><option>Painting</option><option>Drywall</option><option>Flooring</option><option>Lawn Care</option><option>Maintenance</option><option>Other</option></select>
+    </div>
+    <div class="form-field"><label class="form-label">Notes</label><textarea class="form-input" id="cl-notes"></textarea></div>
+    <div class="modal-actions">
+      <button class="big-btn orange" onclick="saveClient()">Save Client</button>
+      <button class="big-btn ghost" onclick="cm('mo-client')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="mo-import">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Import Data?</div>
+    <div class="modal-sub">This will replace ALL current data on this device with the backup file. This cannot be undone.</div>
+    <div class="modal-actions">
+      <button class="big-btn red-ghost" onclick="confirmImport()">Yes, Replace My Data</button>
+      <button class="big-btn ghost" onclick="cm('mo-import')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+var MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+var pageStack=[];
+var invFilter='';
+var bkYear=new Date().getFullYear().toString();
+var editId=null,sendId=null,paidId=null,clientEditId=null,pendingImport=null;
+var LI=[];
+
+function dispName(inv){return(inv.customerCompany&&inv.customerCompany.trim())?inv.customerCompany.trim():(inv.customerName||'').trim();}
+function cDispName(c){return(c.company&&c.company.trim())?c.company.trim():(c.name||'').trim();}
+
+// ── SEED DATA ──
+var SEED_C=[
+  {id:1001,name:'Kris Hawk',company:'Fidelity Real Estate Brokers',email:'kristopher@fidelityrei.com',phone:'405-285-2835',address:'PO Box 8302, Edmond, OK 73083',jobType:'Maintenance',notes:'Primary client',createdAt:'2026-01-01T00:00:00.000Z'},
+  {id:1002,name:'Shavonne Evans / Linda Steele',company:'Evans and Steele Property Solutions',email:'evansandsteele@gmail.com',phone:'405-588-2684',address:'',jobType:'Maintenance',notes:'',createdAt:'2026-01-01T00:00:00.000Z'},
+  {id:1003,name:'Mary Townsend',company:'',email:'',phone:'405-447-8149',address:'3905 Glisten Ct., Norman, OK 73072',jobType:'',notes:'',createdAt:'2026-01-01T00:00:00.000Z'},
+  {id:1004,name:'Linda Tiller',company:'',email:'',phone:'405-642-8474',address:'117 Summit Ridge Ct., Norman, OK 73071',jobType:'',notes:'Also listed as Linda Tillman',createdAt:'2026-01-01T00:00:00.000Z'},
+  {id:1005,name:'Steve Skidmore',company:'',email:'',phone:'405-406-3100',address:'1901 Quail Creek Dr., Norman, OK 73026',jobType:'',notes:'',createdAt:'2026-01-01T00:00:00.000Z'},
+  {id:1006,name:'Ashley Wilemon',company:'',email:'ashley.wilemon@gmail.com',phone:'972-415-5959',address:'334 NE 59th St., OKC, OK 73105',jobType:'',notes:'',createdAt:'2026-01-01T00:00:00.000Z'},
+  {id:1007,name:'Terry Ruggiero',company:'',email:'rosalieruggiero@aol.com',phone:'707-812-2049',address:'104 Rue De Montserrat, Norman, OK 73071',jobType:'',notes:'',createdAt:'2026-01-01T00:00:00.000Z'},
+  {id:1008,name:'Amanda & Zach Hollandsworth',company:'',email:'hollandsworth20@gmail.com',phone:'',address:'1515 Charles St., Norman, OK 73069',jobType:'',notes:'',createdAt:'2026-01-01T00:00:00.000Z'},
+  {id:1009,name:'Kate Hurley',company:'',email:'hurleykate@gmail.com',phone:'',address:'3713 Barwick Ct., Norman, OK 73072',jobType:'',notes:'',createdAt:'2026-01-01T00:00:00.000Z'},
+  {id:1010,name:'Andrew Luce',company:'LDWW',email:'ken@ldww.com',phone:'214-930-9793',address:'',jobType:'',notes:'',createdAt:'2026-01-01T00:00:00.000Z'},
+  {id:1011,name:'Sara Smith',company:'',email:'',phone:'405-973-5050',address:'3305 Ness Cir, Norman, OK 73069',jobType:'',notes:'',createdAt:'2026-01-01T00:00:00.000Z'},
+  {id:1012,name:'Darcy Henthorn',company:'',email:'',phone:'405-708-9354',address:'1225 NE 27th St., Moore, OK 73160',jobType:'',notes:'',createdAt:'2026-01-01T00:00:00.000Z'},
+  {id:1013,name:"Kim O'Brian",company:'',email:'',phone:'580-618-2820',address:'3820 Warrington Way, Norman, OK 73072',jobType:'',notes:'',createdAt:'2026-01-01T00:00:00.000Z'}
+];
+var SEED_I=[
+  {id:2001,number:'ES10626',status:'paid',customerName:'Kris Hawk',customerCompany:'Evans and Steele Property Solutions',customerEmail:'evansandsteele@gmail.com',customerPhone:'405-588-2684',customerAddress:'',jobType:'Maintenance',invDate:'2026-01-06',dueDate:'2026-01-06',jobDesc:'Storm door repair',lineItems:[{id:'a1',type:'labor',desc:'Storm door repair',qty:1,price:200},{id:'a2',type:'materials',desc:'Closing piston and hardware',qty:1,price:0}],taxRate:20,labor:200,materials:0,tax:40,total:240,notes:'Payment accepted via cash, check, CashApp: $Kevinmckee27, or Venmo: @Kevin-McKee-132. Thank you for your business!',paidDate:'2026-01-06',paidMethod:'Check',createdAt:'2026-01-06T00:00:00.000Z'},
+  {id:2002,number:'ES10726',status:'paid',customerName:'Kris Hawk',customerCompany:'Evans and Steele Property Solutions',customerEmail:'evansandsteele@gmail.com',customerPhone:'405-588-2684',customerAddress:'',jobType:'Maintenance',invDate:'2026-01-07',dueDate:'2026-01-07',jobDesc:'Wall protectors, closet doors, towel holder, inspections',lineItems:[{id:'b1',type:'labor',desc:'Wall protectors, closet doors, towel holder, inspections',qty:1,price:150}],taxRate:20,labor:150,materials:0,tax:30,total:180,notes:'Payment accepted via cash, check, CashApp: $Kevinmckee27, or Venmo: @Kevin-McKee-132. Thank you for your business!',paidDate:'2026-01-07',paidMethod:'Check',createdAt:'2026-01-07T00:00:00.000Z'},
+  {id:2003,number:'CW10826',status:'paid',customerName:'Kris Hawk',customerCompany:'Fidelity Real Estate Brokers',customerEmail:'kristopher@fidelityrei.com',customerPhone:'405-285-2835',customerAddress:'Clearwater Dr., Norman OK',jobType:'Lawn Care',invDate:'2026-01-08',dueDate:'2026-01-08',jobDesc:'Tree trimming, leaf cleanup (43 bags)',lineItems:[{id:'c1',type:'labor',desc:'Tree trimming and leaf cleanup',qty:1,price:226.49}],taxRate:20,labor:226.49,materials:0,tax:45.30,total:271.79,notes:'Payment accepted via cash, check, CashApp: $Kevinmckee27, or Venmo: @Kevin-McKee-132. Thank you for your business!',paidDate:'2026-01-08',paidMethod:'Check',createdAt:'2026-01-08T00:00:00.000Z'},
+  {id:2004,number:'23519-1',status:'paid',customerName:'Kris Hawk',customerCompany:'Fidelity Real Estate Brokers',customerEmail:'kristopher@fidelityrei.com',customerPhone:'405-285-2835',customerAddress:'Betty Lou Apartments, 2117 N. Shartel Ave., OKC OK',jobType:'Maintenance',invDate:'2026-01-14',dueDate:'2026-01-14',jobDesc:'Monthly maintenance — Betty Lou Apartments',lineItems:[{id:'d1',type:'labor',desc:'Monthly maintenance',qty:1,price:202.21}],taxRate:20,labor:202.21,materials:0,tax:40.44,total:242.65,notes:'Payment accepted via cash, check, CashApp: $Kevinmckee27, or Venmo: @Kevin-McKee-132. Thank you for your business!',paidDate:'2026-01-14',paidMethod:'Check',createdAt:'2026-01-14T00:00:00.000Z'},
+  {id:2005,number:'23560-1',status:'paid',customerName:'Kris Hawk',customerCompany:'Fidelity Real Estate Brokers',customerEmail:'kristopher@fidelityrei.com',customerPhone:'405-285-2835',customerAddress:'408 S. Eagle Lane',jobType:'Plumbing',invDate:'2026-01-14',dueDate:'2026-01-14',jobDesc:'Toilet inspection',lineItems:[{id:'e1',type:'labor',desc:'Toilet inspection',qty:1,price:100}],taxRate:20,labor:100,materials:0,tax:20,total:120,notes:'Payment accepted via cash, check, CashApp: $Kevinmckee27, or Venmo: @Kevin-McKee-132. Thank you for your business!',paidDate:'2026-01-14',paidMethod:'Check',createdAt:'2026-01-14T00:00:00.000Z'},
+  {id:2006,number:'23619-1',status:'paid',customerName:'Kris Hawk',customerCompany:'Fidelity Real Estate Brokers',customerEmail:'kristopher@fidelityrei.com',customerPhone:'405-285-2835',customerAddress:'2119 1/2 Shartel Ave.',jobType:'Maintenance',invDate:'2026-01-14',dueDate:'2026-01-14',jobDesc:'Unit turn — detectors, fixture, balcony door',lineItems:[{id:'f1',type:'labor',desc:'Unit turn',qty:1,price:300.96}],taxRate:20,labor:300.96,materials:0,tax:60.19,total:361.15,notes:'Payment accepted via cash, check, CashApp: $Kevinmckee27, or Venmo: @Kevin-McKee-132. Thank you for your business!',paidDate:'2026-01-14',paidMethod:'Check',createdAt:'2026-01-14T00:00:00.000Z'},
+  {id:2007,number:'23738-1',status:'paid',customerName:'Kris Hawk',customerCompany:'Fidelity Real Estate Brokers',customerEmail:'kristopher@fidelityrei.com',customerPhone:'405-285-2835',customerAddress:'1213 Clearwater Dr., Norman OK',jobType:'Plumbing',invDate:'2026-02-03',dueDate:'2026-02-03',jobDesc:'Garbage disposal flange repair, leak fix',lineItems:[{id:'g1',type:'labor',desc:'Garbage disposal flange repair and leak fix',qty:1,price:187.22}],taxRate:20,labor:187.22,materials:0,tax:37.44,total:224.66,notes:'Payment accepted via cash, check, CashApp: $Kevinmckee27, or Venmo: @Kevin-McKee-132. Thank you for your business!',paidDate:'2026-02-03',paidMethod:'Check',createdAt:'2026-02-03T00:00:00.000Z'},
+  {id:2008,number:'23745-1',status:'paid',customerName:'Kris Hawk',customerCompany:'Fidelity Real Estate Brokers',customerEmail:'kristopher@fidelityrei.com',customerPhone:'405-285-2835',customerAddress:'1009 Kelsi Dr.',jobType:'Plumbing',invDate:'2026-02-11',dueDate:'2026-02-11',jobDesc:'Garbage disposal replacement, kitchen faucet spray nozzle',lineItems:[{id:'h1',type:'labor',desc:'Garbage disposal replacement and faucet spray nozzle',qty:1,price:488.10}],taxRate:20,labor:488.10,materials:0,tax:97.62,total:585.72,notes:'Payment accepted via cash, check, CashApp: $Kevinmckee27, or Venmo: @Kevin-McKee-132. Thank you for your business!',paidDate:'2026-02-11',paidMethod:'Check',createdAt:'2026-02-11T00:00:00.000Z'},
+  {id:2009,number:'23704-1',status:'paid',customerName:'Kris Hawk',customerCompany:'Fidelity Real Estate Brokers',customerEmail:'kristopher@fidelityrei.com',customerPhone:'405-285-2835',customerAddress:'Betty Lou Apartments, 2117 N. Shartel Ave., OKC OK',jobType:'Maintenance',invDate:'2026-02-13',dueDate:'2026-02-13',jobDesc:'Unit maintenance — Betty Lou Apartments',lineItems:[{id:'i1',type:'labor',desc:'Unit maintenance',qty:1,price:199.32}],taxRate:20,labor:199.32,materials:0,tax:39.86,total:239.18,notes:'Payment accepted via cash, check, CashApp: $Kevinmckee27, or Venmo: @Kevin-McKee-132. Thank you for your business!',paidDate:'2026-02-13',paidMethod:'Check',createdAt:'2026-02-13T00:00:00.000Z'},
+  {id:2010,number:'ES30426',status:'paid',customerName:'Shavonne Evans',customerCompany:'Evans and Steele Property Solutions',customerEmail:'evansandsteele@gmail.com',customerPhone:'405-588-2684',customerAddress:'1828 Burnt Oak Dr., Norman, OK 73071',jobType:'Maintenance',invDate:'2026-03-04',dueDate:'2026-03-04',jobDesc:'Weather stripping on 3 doors, ceiling fan inspection',lineItems:[{id:'j1',type:'labor',desc:'Weather stripping and ceiling fan inspection',qty:1,price:150},{id:'j2',type:'materials',desc:'Weather stripping and supplies',qty:1,price:54.38}],taxRate:20,labor:150,materials:54.38,tax:40.88,total:245.26,notes:'Payment accepted via cash, check, CashApp: $Kevinmckee27, or Venmo: @Kevin-McKee-132. Thank you for your business!',paidDate:'2026-03-04',paidMethod:'Check',createdAt:'2026-03-04T00:00:00.000Z'},
+  {id:2011,number:'23971-1',status:'paid',customerName:'Kris Hawk',customerCompany:'Fidelity Real Estate Brokers',customerEmail:'kristopher@fidelityrei.com',customerPhone:'405-285-2835',customerAddress:'3923 Lleyton Dr., Norman, OK 73072',jobType:'Maintenance',invDate:'2026-03-10',dueDate:'2026-03-22',jobDesc:'Unit Turn — 3923 Lleyton Dr.',lineItems:[{id:'k1',type:'labor',desc:'Unit turn',qty:1,price:200},{id:'k2',type:'materials',desc:'Materials',qty:1,price:90.89}],taxRate:20,labor:200,materials:90.89,tax:58.18,total:349.07,notes:'Payment accepted via cash, check, CashApp: $Kevinmckee27, or Venmo: @Kevin-McKee-132. Thank you for your business!',paidDate:'2026-03-22',paidMethod:'Check',createdAt:'2026-03-10T00:00:00.000Z'},
+  {id:2012,number:'23952-2',status:'paid',customerName:'Kris Hawk',customerCompany:'Fidelity Real Estate Brokers',customerEmail:'kristopher@fidelityrei.com',customerPhone:'405-285-2835',customerAddress:'Betty Lou Apartments, 2117 N. Shartel Ave., OKC OK',jobType:'Maintenance',invDate:'2026-03-09',dueDate:'2026-03-22',jobDesc:'Betty Lou Monthly Maintenance',lineItems:[{id:'l1',type:'labor',desc:'Betty Lou monthly maintenance',qty:1,price:150},{id:'l2',type:'materials',desc:'Materials',qty:1,price:40}],taxRate:20,labor:150,materials:40,tax:38,total:228,notes:'Payment accepted via cash, check, CashApp: $Kevinmckee27, or Venmo: @Kevin-McKee-132. Thank you for your business!',paidDate:'2026-03-22',paidMethod:'Check',createdAt:'2026-03-09T00:00:00.000Z'},
+  {id:2013,number:'DH41026',status:'paid',customerName:'Darcy Henthorn',customerCompany:'',customerEmail:'',customerPhone:'405-708-9354',customerAddress:'1225 NE 27th St., Moore, OK 73160',jobType:'General Contracting',invDate:'2026-04-01',dueDate:'2026-04-01',jobDesc:'Dog run build',lineItems:[{id:'m1',type:'labor',desc:'Dog run build — labor',qty:1,price:1191.51},{id:'m2',type:'materials',desc:'Dog run materials',qty:1,price:908.49}],taxRate:20,labor:1191.51,materials:908.49,tax:420,total:2520,notes:'Payment accepted via cash, check, CashApp: $Kevinmckee27, or Venmo: @Kevin-McKee-132. Thank you for your business!',paidDate:'2026-04-01',paidMethod:'Check',createdAt:'2026-04-01T00:00:00.000Z'},
+  {id:2014,number:'24070-1',status:'paid',customerName:'Kris Hawk',customerCompany:'Fidelity Real Estate Brokers',customerEmail:'kristopher@fidelityrei.com',customerPhone:'405-285-2835',customerAddress:'1213 Clearwater Dr., Norman OK 73071',jobType:'General Contracting',invDate:'2026-03-20',dueDate:'2026-04-07',jobDesc:'Fence repair',lineItems:[{id:'n1',type:'labor',desc:'Fence repair',qty:1,price:355},{id:'n2',type:'materials',desc:'Metal posts, hardware, materials',qty:1,price:170}],taxRate:20,labor:355,materials:170,tax:105,total:630,notes:'Payment accepted via cash, check, CashApp: $Kevinmckee27, or Venmo: @Kevin-McKee-132. Thank you for your business!',paidDate:'2026-04-07',paidMethod:'Check',createdAt:'2026-03-20T00:00:00.000Z'},
+  {id:2015,number:'24226-1',status:'paid',customerName:'Kris Hawk',customerCompany:'Fidelity Real Estate Brokers',customerEmail:'kristopher@fidelityrei.com',customerPhone:'405-285-2835',customerAddress:'1213 Clearwater Dr., Norman OK 73071',jobType:'Plumbing',invDate:'2026-03-24',dueDate:'2026-04-07',jobDesc:'Under kitchen sink leak repair',lineItems:[{id:'o1',type:'labor',desc:'Kitchen sink leak and hot water line',qty:1,price:100},{id:'o2',type:'materials',desc:'Hot water line and fittings',qty:1,price:31.08}],taxRate:20,labor:100,materials:31.08,tax:26.22,total:157.30,notes:'Payment accepted via cash, check, CashApp: $Kevinmckee27, or Venmo: @Kevin-McKee-132. Thank you for your business!',paidDate:'2026-04-07',paidMethod:'Check',createdAt:'2026-03-24T00:00:00.000Z'},
+  {id:2016,number:'24232-1',status:'paid',customerName:'Kris Hawk',customerCompany:'Fidelity Real Estate Brokers',customerEmail:'kristopher@fidelityrei.com',customerPhone:'405-285-2835',customerAddress:'3923 Lleyton Dr., Norman, OK 73072',jobType:'Lawn Care',invDate:'2026-03-27',dueDate:'2026-04-07',jobDesc:'Lawn Work — 3923 Lleyton Dr.',lineItems:[{id:'p1',type:'labor',desc:'Lawn care',qty:1,price:150},{id:'p2',type:'materials',desc:'Lawn materials',qty:1,price:45.96}],taxRate:20,labor:150,materials:45.96,tax:39.19,total:235.15,notes:'Payment accepted via cash, check, CashApp: $Kevinmckee27, or Venmo: @Kevin-McKee-132. Thank you for your business!',paidDate:'2026-04-07',paidMethod:'Check',createdAt:'2026-03-27T00:00:00.000Z'},
+  {id:2017,number:'24214-1',status:'paid',customerName:'Kris Hawk',customerCompany:'Fidelity Real Estate Brokers',customerEmail:'kristopher@fidelityrei.com',customerPhone:'405-285-2835',customerAddress:'2117 N. Shartel Ave., OKC, OK 73103',jobType:'Maintenance',invDate:'2026-04-06',dueDate:'2026-04-07',jobDesc:'Betty Lou Monthly Maintenance with Bug Boss walkthrough',lineItems:[{id:'q1',type:'labor',desc:'Monthly maintenance and Bug Boss walkthrough',qty:1,price:150},{id:'q2',type:'materials',desc:'Filters and materials',qty:1,price:69.38}],taxRate:20,labor:150,materials:69.38,tax:43.88,total:263.26,notes:'Payment accepted via cash, check, CashApp: $Kevinmckee27, or Venmo: @Kevin-McKee-132. Thank you for your business!',paidDate:'2026-04-07',paidMethod:'Check',createdAt:'2026-04-06T00:00:00.000Z'},
+  {id:2018,number:'24376-1',status:'paid',customerName:'Kris Hawk',customerCompany:'Fidelity Real Estate Brokers',customerEmail:'kristopher@fidelityrei.com',customerPhone:'405-285-2835',customerAddress:'2027 Delphine Dr., Norman, OK 73071',jobType:'Lawn Care',invDate:'2026-04-11',dueDate:'2026-04-14',jobDesc:'Lawn work — 2027 Delphine Dr.',lineItems:[{id:'r1',type:'labor',desc:'Lawn care',qty:1,price:100},{id:'r2',type:'materials',desc:'Materials',qty:1,price:25}],taxRate:20,labor:100,materials:25,tax:25,total:150,notes:'Payment accepted via cash, check, CashApp: $Kevinmckee27, or Venmo: @Kevin-McKee-132. Thank you for your business!',paidDate:'2026-04-14',paidMethod:'Check',createdAt:'2026-04-11T00:00:00.000Z'},
+  {id:2019,number:'24377-1',status:'paid',customerName:'Kris Hawk',customerCompany:'Fidelity Real Estate Brokers',customerEmail:'kristopher@fidelityrei.com',customerPhone:'405-285-2835',customerAddress:'2012 Wolford Way, Norman, OK 73071',jobType:'Lawn Care',invDate:'2026-04-11',dueDate:'2026-04-14',jobDesc:'Lawn Work — 1012 Wolford Way',lineItems:[{id:'s1',type:'labor',desc:'Lawn care',qty:1,price:100},{id:'s2',type:'materials',desc:'Materials',qty:1,price:25}],taxRate:20,labor:100,materials:25,tax:25,total:150,notes:'Payment accepted via cash, check, CashApp: $Kevinmckee27, or Venmo: @Kevin-McKee-132. Thank you for your business!',paidDate:'2026-04-14',paidMethod:'Check',createdAt:'2026-04-11T00:00:00.000Z'},
+  {id:2020,number:'CW42026',status:'paid',customerName:'Kris Hawk',customerCompany:'Fidelity Real Estate Brokers',customerEmail:'kristopher@fidelityrei.com',customerPhone:'405-285-2835',customerAddress:'1213 & 1215 Clearwater Dr., Norman, OK',jobType:'Lawn Care',invDate:'2026-04-20',dueDate:'2026-04-20',jobDesc:'Lawn Work — 1213 Clearwater Dr.',lineItems:[{id:'t1',type:'labor',desc:'Lawn care',qty:1,price:100},{id:'t2',type:'materials',desc:'Materials',qty:1,price:25}],taxRate:20,labor:100,materials:25,tax:25,total:150,notes:'Payment accepted via cash, check, CashApp: $Kevinmckee27, or Venmo: @Kevin-McKee-132. Thank you for your business!',paidDate:'2026-04-20',paidMethod:'Check',createdAt:'2026-04-20T00:00:00.000Z'},
+  {id:2021,number:'DH42926',status:'paid',customerName:'Darcy Henthorn',customerCompany:'',customerEmail:'',customerPhone:'405-708-9354',customerAddress:'1225 NE 27th St., Moore, OK 73160',jobType:'General Contracting',invDate:'2026-04-20',dueDate:'2026-04-20',jobDesc:'Window repair',lineItems:[{id:'u1',type:'labor',desc:'Diagnose and repair windows',qty:1,price:250},{id:'u2',type:'materials',desc:'Window repair materials',qty:1,price:139.53}],taxRate:20,labor:250,materials:139.53,tax:77.91,total:467.44,notes:'Payment accepted via cash, check, CashApp: $Kevinmckee27, or Venmo: @Kevin-McKee-132. Thank you for your business!',paidDate:'2026-04-20',paidMethod:'Check',createdAt:'2026-04-20T00:00:00.000Z'},
+  {id:2022,number:'KO42826',status:'paid',customerName:"Kim O'Brian",customerCompany:'',customerEmail:'',customerPhone:'580-618-2820',customerAddress:'3820 Warrington Way, Norman, OK 73072',jobType:'Maintenance',invDate:'2026-04-19',dueDate:'2026-04-19',jobDesc:'Home repairs',lineItems:[{id:'v1',type:'labor',desc:'Home repairs',qty:1,price:150},{id:'v2',type:'materials',desc:'Materials',qty:1,price:25}],taxRate:20,labor:150,materials:25,tax:35,total:210,notes:'Payment accepted via cash, check, CashApp: $Kevinmckee27, or Venmo: @Kevin-McKee-132. Thank you for your business!',paidDate:'2026-04-19',paidMethod:'Check',createdAt:'2026-04-19T00:00:00.000Z'}
+];
+var SEED_S={bizName:'McKee Maintenance & Repair, LLC',bizOwner:'Kevin McKee',bizPhone:'405-816-8958',bizEmail:'',bizAddr:'2101 Creighton Dr., Norman, OK 73071',bizLic:'',nextNum:24500};
+
+function seed(){
+  if(!localStorage.getItem('tbmk_inv'))localStorage.setItem('tbmk_inv',JSON.stringify(SEED_I));
+  if(!localStorage.getItem('tbmk_cli'))localStorage.setItem('tbmk_cli',JSON.stringify(SEED_C));
+  if(!localStorage.getItem('tbmk_set'))localStorage.setItem('tbmk_set',JSON.stringify(SEED_S));
+}
+seed();
+
+var invoices=JSON.parse(localStorage.getItem('tbmk_inv')||'[]');
+var clients=JSON.parse(localStorage.getItem('tbmk_cli')||'[]');
+var settings=JSON.parse(localStorage.getItem('tbmk_set')||'{}');
+
+function sv(k,v){localStorage.setItem(k,JSON.stringify(v));}
+function el(id){return document.getElementById(id);}
+function g(id){return el(id).value;}
+function fm(n){return'$'+(parseFloat(n)||0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');}
+function fd(d){if(!d)return'—';var p=d.split('-');if(p.length<3)return d;return MO[parseInt(p[1])-1]+' '+parseInt(p[2]);}
+
+function toast(msg,type){var e=el('toast');e.textContent=msg;e.className='toast show'+(type?' '+type:'');setTimeout(function(){e.className='toast';},3000);}
+function cm(id){el(id).classList.remove('open');}
+
+// ── NAVIGATION ──
+function showPage(id){
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  el(id).classList.add('active');
+  el('screen').scrollTop=0;
+}
+function goTab(tab){
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});
+  var tabEl=el('tab-'+tab);if(tabEl)tabEl.classList.add('active');
+  pageStack=[];
+  if(tab==='home'){showPage('page-home');renderHome();}
+  else if(tab==='invoices'){showPage('page-invoices');renderInvList();}
+  else if(tab==='clients'){showPage('page-clients');renderClients();}
+  else if(tab==='bookkeeping'){showPage('page-bk');renderBK();}
+  else if(tab==='settings'){showPage('page-settings');loadSettingsUI();}
+}
+function pushPage(id){
+  pageStack.push(document.querySelector('.page.active').id);
+  showPage(id);
+}
+function goBack(currentId){
+  if(pageStack.length>0){showPage(pageStack.pop());}
+  else{goTab('home');}
+}
+
+// ── HOME ──
+function renderHome(){
+  var tot=invoices.reduce(function(s,i){return s+(i.total||0);},0);
+  var pd=invoices.filter(function(i){return i.status==='paid';}).reduce(function(s,i){return s+(i.total||0);},0);
+  var out=invoices.filter(function(i){return i.status!=='paid';}).reduce(function(s,i){return s+(i.total||0);},0);
+  var lab=invoices.filter(function(i){return i.status==='paid';}).reduce(function(s,i){return s+(i.labor||0);},0);
+  el('home-stats').innerHTML=
+    '<div class="stat-card"><div class="stat-label">Total Invoiced</div><div class="stat-val blue">'+fm(tot)+'</div></div>'+
+    '<div class="stat-card"><div class="stat-label">Collected</div><div class="stat-val green">'+fm(pd)+'</div></div>'+
+    '<div class="stat-card"><div class="stat-label">Outstanding</div><div class="stat-val orange">'+fm(out)+'</div></div>'+
+    '<div class="stat-card"><div class="stat-label">Tax Reserve</div><div class="stat-val red">'+fm(lab*.2)+'</div><div class="stat-sub">20% of labor</div></div>';
+  var rec=invoices.slice(0,6);
+  el('home-recent').innerHTML=rec.length?rec.map(invItem).join(''):'<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">No invoices yet</div><div class="empty-sub">Tap + New to create your first invoice</div></div>';
+}
+
+function invItem(inv){
+  return'<div class="inv-item" onclick="openInvDetail('+inv.id+')">'+
+    '<div class="inv-dot '+inv.status+'"></div>'+
+    '<div class="inv-info"><div class="inv-co">'+dispName(inv)+'</div>'+
+    '<div class="inv-meta">#'+inv.number+' &middot; '+fd(inv.invDate)+(inv.jobType?' &middot; '+inv.jobType:'')+'</div></div>'+
+    '<div style="text-align:right"><div class="inv-amt">'+fm(inv.total||0)+'</div>'+
+    '<div class="inv-badge '+inv.status+'" style="margin-top:3px">'+inv.status+'</div></div></div>';
+}
+
+// ── INVOICE LIST ──
+var invFilterVal='';
+function setFilter(val,btn){
+  invFilterVal=val;
+  document.querySelectorAll('.ftab').forEach(function(t){t.classList.remove('active');});
+  btn.classList.add('active');
+  renderInvList();
+}
+function renderInvList(){
+  var q=(g('inv-search')||'').toLowerCase();
+  var list=invoices;
+  if(q)list=list.filter(function(i){return dispName(i).toLowerCase().includes(q)||String(i.number).toLowerCase().includes(q);});
+  if(invFilterVal)list=list.filter(function(i){return i.status===invFilterVal;});
+  el('inv-list').innerHTML=list.length?list.map(invItem).join(''):'<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">No invoices found</div></div>';
+}
+
+// ── INVOICE DETAIL ──
+function openInvDetail(id){
+  var inv=invoices.find(function(i){return i.id===id;});if(!inv)return;
+  var lRows=(inv.lineItems||[]).map(function(l){
+    var lt=(parseFloat(l.qty)||0)*(parseFloat(l.price)||0);
+    return'<div class="li-display-row">'+
+      '<div><div class="li-display-type '+l.type+'">'+l.type+'</div>'+
+      '<div class="li-display-desc">'+l.desc+'</div>'+
+      '<div class="li-display-qty">Qty: '+l.qty+'</div></div>'+
+      '<div class="li-display-amt">'+fm(lt)+'</div></div>';
+  }).join('');
+  var canPay=inv.status!=='paid';var canSend=inv.status!=='paid';
+  el('inv-detail-content').innerHTML=
+    '<div class="inv-detail">'+
+    '<div class="inv-detail-header">'+
+    '<div class="inv-detail-co">'+dispName(inv)+'</div>'+
+    '<div class="inv-detail-num">Invoice #'+inv.number+(inv.customerAddress?' &middot; '+inv.customerAddress:'')+'</div>'+
+    '<div class="inv-detail-meta">'+
+    '<div class="inv-detail-meta-item"><div class="inv-detail-meta-label">Date</div><div class="inv-detail-meta-val">'+fd(inv.invDate)+'</div></div>'+
+    '<div class="inv-detail-meta-item"><div class="inv-detail-meta-label">Due</div><div class="inv-detail-meta-val">'+fd(inv.dueDate)+'</div></div>'+
+    '<div class="inv-detail-meta-item"><div class="inv-detail-meta-label">Status</div><div class="inv-detail-meta-val"><span class="inv-badge '+inv.status+'">'+inv.status+'</span></div></div>'+
+    '</div></div>'+
+    '<div style="margin-bottom:16px">'+lRows+'</div>'+
+    '<div style="background:var(--text);color:#fff;border-radius:12px;padding:14px">'+
+    '<div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;color:#7EB8F0"><span>Labor</span><span style="font-family:\'JetBrains Mono\',monospace">'+fm(inv.labor||0)+'</span></div>'+
+    '<div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;color:#F0C97E"><span>Materials</span><span style="font-family:\'JetBrains Mono\',monospace">'+fm(inv.materials||0)+'</span></div>'+
+    '<div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;color:rgba(255,255,255,.5)"><span>Tax ('+inv.taxRate+'%)</span><span style="font-family:\'JetBrains Mono\',monospace">'+fm(inv.tax||0)+'</span></div>'+
+    '<div style="display:flex;justify-content:space-between;font-size:20px;font-weight:800;border-top:1px solid rgba(255,255,255,.2);padding-top:10px;margin-top:6px"><span>Total Due</span><span style="font-family:\'JetBrains Mono\',monospace">'+fm(inv.total||0)+'</span></div>'+
+    '</div>'+
+    (inv.notes?'<div style="margin-top:14px;font-size:12px;color:var(--text2);padding:12px;background:var(--surface2);border-radius:10px">'+inv.notes+'</div>':'')+
+    '</div>'+
+    '<div style="display:flex;flex-direction:column;gap:10px;padding-bottom:8px">'+
+    (canSend?'<button class="big-btn orange" onclick="qSend('+id+')">&#9993; Send Email</button>':'')+
+    (canPay?'<button class="big-btn green" onclick="openPaid('+id+')">&#10003; Mark as Paid</button>':'')+
+    '<button class="big-btn ghost" onclick="editInv('+id+')">&#9998; Edit Invoice</button>'+
+    '</div>';
+  pushPage('page-inv-detail');
+}
+
+// ── NEW INVOICE ──
+function startNew(){editId=null;resetForm();pushPage('page-new');}
+function cancelNew(){goBack('page-new');}
+
+function resetForm(){
+  ['n-co','n-nm','n-ph','n-em','n-ad','n-num','n-desc'].forEach(function(id){el(id).value='';});
+  el('n-jtype').value='';el('n-tax').value=0;
+  el('n-notes').value='Payment accepted via cash, check, CashApp: $Kevinmckee27, or Venmo: @Kevin-McKee-132. Thank you for your business!';
+  var t=new Date().toISOString().split('T')[0];
+  var d=new Date(Date.now()+30*864e5).toISOString().split('T')[0];
+  el('n-idate').value=t;el('n-ddate').value=d;
+  LI=[];renderLI();
+  el('new-title').textContent=editId?'Edit Invoice':'New Invoice';
+  renderClientChips();
+  addLI('labor');addLI('materials');
+}
+
+function renderClientChips(){
+  el('new-client-chips').innerHTML=clients.slice(0,12).map(function(c){
+    return'<div class="client-chip" onclick="fillClient('+c.id+',this)">'+cDispName(c)+'</div>';
+  }).join('');
+}
+
+function fillClient(id,chip){
+  document.querySelectorAll('.client-chip').forEach(function(c){c.classList.remove('selected');});
+  chip.classList.add('selected');
+  var c=clients.find(function(x){return x.id==id;});if(!c)return;
+  el('n-co').value=c.company||'';el('n-nm').value=c.name||'';
+  el('n-ph').value=c.phone||'';el('n-em').value=c.email||'';
+  el('n-ad').value=c.address||'';
+  if(c.jobType)el('n-jtype').value=c.jobType;
+  toast('Client loaded!','success');
+}
+
+function addLI(type,desc,qty,price){
+  LI.push({id:Date.now()+Math.random(),type:type||'labor',desc:desc||'',qty:qty||1,price:price||''});
+  renderLI();
+}
+function renderLI(){
+  el('n-li-wrap').innerHTML=LI.map(function(li){
+    return'<div class="li-row">'+
+    '<div class="li-top">'+
+    '<button class="li-type-btn '+li.type+'" onclick="toggleType(\''+li.id+'\',this)">'+li.type+'</button>'+
+    '<button class="li-del" onclick="dLI(\''+li.id+'\')">&#215;</button></div>'+
+    '<div class="li-inputs">'+
+    '<input class="li-input" placeholder="Description" value="'+String(li.desc).replace(/"/g,'&quot;')+'" onchange="uLI(\''+li.id+'\',\'desc\',this.value)">'+
+    '<input class="li-input" type="number" min="0" step="0.5" value="'+li.qty+'" placeholder="Qty" style="text-align:center" onchange="uLI(\''+li.id+'\',\'qty\',this.value)">'+
+    '<input class="li-input" type="number" min="0" step="0.01" placeholder="Price" value="'+li.price+'" onchange="uLI(\''+li.id+'\',\'price\',this.value)">'+
+    '</div></div>';
+  }).join('');recalc();
+}
+function toggleType(id,btn){
+  var li=LI.find(function(l){return l.id==id;});if(!li)return;
+  li.type=li.type==='labor'?'materials':'labor';
+  btn.textContent=li.type;
+  btn.className='li-type-btn '+li.type;
+  recalc();
+}
+function uLI(id,f,v){var li=LI.find(function(l){return l.id==id;});if(!li)return;li[f]=(f==='desc')?v:parseFloat(v)||0;recalc();}
+function dLI(id){LI=LI.filter(function(l){return l.id!=id;});renderLI();}
+function recalc(){
+  var lab=LI.filter(function(l){return l.type==='labor';}).reduce(function(s,l){return s+(parseFloat(l.qty)||0)*(parseFloat(l.price)||0);},0);
+  var mat=LI.filter(function(l){return l.type==='materials';}).reduce(function(s,l){return s+(parseFloat(l.qty)||0)*(parseFloat(l.price)||0);},0);
+  var tx=parseFloat(g('n-tax'))||0;var tax=(lab+mat)*tx/100;
+  el('n-lab-sub').textContent=fm(lab);el('n-mat-sub').textContent=fm(mat);
+  el('n-tax-disp').textContent=fm(tax);el('n-total').textContent=fm(lab+mat+tax);
+}
+
+function bldInv(status){
+  var lab=LI.filter(function(l){return l.type==='labor';}).reduce(function(s,l){return s+(parseFloat(l.qty)||0)*(parseFloat(l.price)||0);},0);
+  var mat=LI.filter(function(l){return l.type==='materials';}).reduce(function(s,l){return s+(parseFloat(l.qty)||0)*(parseFloat(l.price)||0);},0);
+  var tx=parseFloat(g('n-tax'))||0;var tax=(lab+mat)*tx/100;
+  return{id:editId||Date.now(),number:g('n-num')||settings.nextNum||24500,status:status,
+    customerName:g('n-nm'),customerCompany:g('n-co'),customerEmail:g('n-em'),
+    customerPhone:g('n-ph'),customerAddress:g('n-ad'),jobType:g('n-jtype'),
+    invDate:g('n-idate'),dueDate:g('n-ddate'),jobDesc:g('n-desc'),
+    lineItems:JSON.parse(JSON.stringify(LI)),taxRate:tx,labor:lab,materials:mat,tax:tax,total:lab+mat+tax,
+    notes:g('n-notes'),createdAt:new Date().toISOString()};
+}
+function saveInv(inv){
+  if(editId){var i=invoices.findIndex(function(x){return x.id===editId;});if(i>-1)invoices[i]=inv;}
+  else{invoices.unshift(inv);if(!g('n-num')){settings.nextNum=(settings.nextNum||24500)+1;sv('tbmk_set',settings);el('s-nextnum').value=settings.nextNum;}}
+  sv('tbmk_inv',invoices);editId=null;
+}
+function saveDraft(){
+  if(!g('n-nm')&&!g('n-co')){toast('Please enter a customer name.','error');return;}
+  saveInv(bldInv('draft'));toast('Draft saved!','success');renderHome();goBack('page-new');
+}
+function saveAndSend(){
+  if(!g('n-nm')&&!g('n-co')){toast('Please enter a customer name.','error');return;}
+  var inv=bldInv('sent');saveInv(inv);renderHome();
+  sendId=inv.id;
+  el('send-email').value=inv.customerEmail||'';
+  el('send-subj').value='Invoice #'+inv.number+' from '+(settings.bizName||'McKee Maintenance & Repair');
+  el('mo-send-sub').textContent='Invoice #'+inv.number+' for '+dispName(inv);
+  el('mo-send').classList.add('open');
+}
+function previewInv(){
+  if(!g('n-nm')&&!g('n-co')){toast('Please enter a customer name first.','error');return;}
+  var inv=bldInv('draft');renderPreview(inv);
+  el('preview-send-btn').onclick=function(){saveAndSend();};
+  pushPage('page-preview');
+}
+function editInv(id){
+  var inv=invoices.find(function(i){return i.id===id;});if(!inv)return;
+  editId=id;
+  el('n-co').value=inv.customerCompany||'';el('n-nm').value=inv.customerName||'';
+  el('n-ph').value=inv.customerPhone||'';el('n-em').value=inv.customerEmail||'';
+  el('n-ad').value=inv.customerAddress||'';el('n-jtype').value=inv.jobType||'';
+  el('n-idate').value=inv.invDate||'';el('n-ddate').value=inv.dueDate||'';
+  el('n-num').value=inv.number||'';el('n-desc').value=inv.jobDesc||'';
+  el('n-tax').value=inv.taxRate||0;el('n-notes').value=inv.notes||'';
+  LI=JSON.parse(JSON.stringify(inv.lineItems||[]));renderLI();
+  el('new-title').textContent='Edit Invoice';
+  renderClientChips();
+  pushPage('page-new');
+}
+
+function renderPreview(inv){
+  var b=settings;
+  var lRows=(inv.lineItems||[]).map(function(l){
+    var lt=(parseFloat(l.qty)||0)*(parseFloat(l.price)||0);
+    return'<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--border)">'+
+    '<div><div style="font-size:11px;font-weight:700;padding:2px 7px;border-radius:10px;display:inline-block;margin-bottom:3px;'+(l.type==='labor'?'background:var(--blue-light);color:var(--blue)':'background:var(--amber-light);color:var(--amber)')+'">'+l.type+'</div>'+
+    '<div style="font-size:14px;font-weight:600">'+l.desc+'</div>'+
+    '<div style="font-size:12px;color:var(--text2)">Qty '+l.qty+' × '+fm(l.price||0)+'</div></div>'+
+    '<div style="font-family:\'JetBrains Mono\',monospace;font-weight:700;font-size:14px;flex-shrink:0;margin-left:12px">'+fm(lt)+'</div></div>';
+  }).join('');
+  el('preview-content').innerHTML=
+    '<div style="background:var(--text);color:#fff;border-radius:var(--radius);padding:20px;margin-bottom:12px">'+
+    '<div style="font-size:11px;font-weight:700;opacity:.5;text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px">Invoice</div>'+
+    '<div style="font-size:22px;font-weight:800;letter-spacing:-.5px">'+dispName(inv)+'</div>'+
+    '<div style="font-size:13px;opacity:.6;margin-top:4px;font-family:\'JetBrains Mono\',monospace">#'+inv.number+'</div>'+
+    '<div style="display:flex;gap:20px;margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,.15)">'+
+    '<div><div style="font-size:10px;opacity:.5;text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px">Date</div><div style="font-size:13px;font-weight:600">'+fd(inv.invDate)+'</div></div>'+
+    '<div><div style="font-size:10px;opacity:.5;text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px">Due</div><div style="font-size:13px;font-weight:600">'+fd(inv.dueDate)+'</div></div>'+
+    '<div><div style="font-size:10px;opacity:.5;text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px">Job</div><div style="font-size:13px;font-weight:600">'+(inv.jobType||'—')+'</div></div>'+
+    '</div></div>'+
+    '<div class="inv-detail" style="margin-bottom:12px">'+
+    '<div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Bill To</div>'+
+    '<div style="font-size:16px;font-weight:800">'+dispName(inv)+'</div>'+
+    (inv.customerName&&inv.customerCompany?'<div style="font-size:13px;color:var(--text2)">Attn: '+inv.customerName+'</div>':'')+
+    (inv.customerPhone?'<div style="font-size:13px;color:var(--text2)">'+inv.customerPhone+'</div>':'')+
+    (inv.customerAddress?'<div style="font-size:13px;color:var(--text2)">'+inv.customerAddress+'</div>':'')+
+    '</div>'+
+    '<div class="inv-detail" style="margin-bottom:12px">'+
+    '<div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Work Performed</div>'+
+    lRows+
+    '<div style="background:var(--text);color:#fff;border-radius:10px;padding:14px;margin-top:14px">'+
+    '<div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;color:#7EB8F0"><span>Labor</span><span style="font-family:\'JetBrains Mono\',monospace">'+fm(inv.labor||0)+'</span></div>'+
+    '<div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;color:#F0C97E"><span>Materials</span><span style="font-family:\'JetBrains Mono\',monospace">'+fm(inv.materials||0)+'</span></div>'+
+    '<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0;color:rgba(255,255,255,.4)"><span>Tax ('+inv.taxRate+'%)</span><span style="font-family:\'JetBrains Mono\',monospace">'+fm(inv.tax||0)+'</span></div>'+
+    '<div style="display:flex;justify-content:space-between;font-size:20px;font-weight:800;border-top:1px solid rgba(255,255,255,.2);padding-top:10px;margin-top:6px"><span>Total Due</span><span style="font-family:\'JetBrains Mono\',monospace">'+fm(inv.total||0)+'</span></div>'+
+    '</div></div>'+
+    '<div class="inv-detail" style="margin-bottom:12px">'+
+    '<div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">From</div>'+
+    '<div style="font-size:14px;font-weight:700">'+(b.bizName||'McKee Maintenance & Repair, LLC')+'</div>'+
+    '<div style="font-size:13px;color:var(--text2)">'+(b.bizPhone||'405-816-8958')+'</div>'+
+    '<div style="font-size:13px;color:var(--text2)">'+(b.bizAddr||'2101 Creighton Dr., Norman, OK 73071')+'</div>'+
+    '</div>'+
+    (inv.notes?'<div style="font-size:12px;color:var(--text2);padding:12px;background:var(--surface2);border-radius:10px;margin-bottom:12px">'+inv.notes+'</div>':'');
+}
+
+function savePDF(){
+  window.print();
+}
+
+// ── SEND ──
+function qSend(id){
+  var inv=invoices.find(function(i){return i.id===id;});if(!inv)return;sendId=id;
+  el('send-email').value=inv.customerEmail||'';
+  el('send-subj').value='Invoice #'+inv.number+' from '+(settings.bizName||'McKee Maintenance & Repair');
+  el('mo-send-sub').textContent='Invoice #'+inv.number+' for '+dispName(inv);
+  el('mo-send').classList.add('open');
+}
+async function doSend(){
+  var to=el('send-email').value.trim();var subj=el('send-subj').value;var msg=el('send-msg').value;
+  if(!to){toast('Please enter an email.','error');return;}
+  var inv=invoices.find(function(i){return i.id===sendId;});if(!inv){toast('Invoice not found.','error');return;}
+  cm('mo-send');toast('Sending...');
+  var lR=(inv.lineItems||[]).map(function(l){return' ['+l.type.toUpperCase()+'] '+l.desc+' Qty:'+l.qty+' =$'+((parseFloat(l.qty)||0)*(parseFloat(l.price)||0)).toFixed(2);}).join('\n');
+  var body=msg+'\n\nINVOICE #'+inv.number+'\n'+(settings.bizName||'McKee Maintenance & Repair, LLC')+'\n'+(settings.bizPhone||'405-816-8958')+'\n\nBILL TO: '+dispName(inv)+'\n'+(inv.customerAddress||'')+'\nJob: '+(inv.jobType||'')+'\n\n'+lR+'\n\nLabor: $'+(inv.labor||0).toFixed(2)+'\nMaterials: $'+(inv.materials||0).toFixed(2)+'\nTax: $'+(inv.tax||0).toFixed(2)+'\nTOTAL: $'+(inv.total||0).toFixed(2)+'\n\n'+(inv.notes||'');
+  try{
+    var r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:'Send emails via Gmail MCP.',messages:[{role:'user',content:'Send email:\nTo: '+to+'\nSubject: '+subj+'\nBody:\n'+body}],mcp_servers:[{type:'url',url:'https://gmailmcp.googleapis.com/mcp/v1',name:'gmail-mcp'}]})});
+    var d=await r.json();
+    var txt=(d.content||[]).filter(function(b){return b.type==='text';}).map(function(b){return b.text;}).join(' ');
+    var tr=(d.content||[]).filter(function(b){return b.type==='mcp_tool_result';});
+    if(tr.length>0||txt.toLowerCase().includes('sent')||txt.toLowerCase().includes('success')){
+      var ix=invoices.findIndex(function(x){return x.id===sendId;});
+      if(ix>-1&&invoices[ix].status==='draft')invoices[ix].status='sent';
+      sv('tbmk_inv',invoices);renderHome();renderInvList();toast('Invoice sent!','success');
+    }else toast('May not have sent. Check connection.','error');
+  }catch(e){toast('Could not send. Check connection.','error');}
+}
+
+// ── MARK PAID ──
+function openPaid(id){
+  paidId=id;el('paid-date').value=new Date().toISOString().split('T')[0];
+  el('mo-paid').classList.add('open');
+}
+function doMarkPaid(){
+  var i=invoices.findIndex(function(x){return x.id===paidId;});
+  if(i>-1){invoices[i].status='paid';invoices[i].paidDate=g('paid-date');invoices[i].paidMethod=g('paid-method');}
+  sv('tbmk_inv',invoices);cm('mo-paid');renderHome();renderInvList();
+  toast('Marked as paid! ✓','success');
+  // refresh detail if open
+  if(el('page-inv-detail').classList.contains('active'))openInvDetail(paidId);
+}
+
+// ── CLIENTS ──
+function renderClients(){
+  var q=(el('cli-search').value||'').toLowerCase();
+  var list=clients;
+  if(q)list=list.filter(function(c){return(c.name||'').toLowerCase().includes(q)||(c.company||'').toLowerCase().includes(q);});
+  var wrap=el('cli-list');
+  if(!list.length){wrap.innerHTML='<div class="empty-state"><div class="empty-icon">👥</div><div class="empty-title">No clients found</div></div>';return;}
+  wrap.innerHTML=list.map(function(c){
+    var d=cDispName(c);var ini=d.split(' ').map(function(p){return p[0];}).join('').slice(0,2).toUpperCase();
+    return'<div class="client-card">'+
+    '<div class="client-card-top"><div class="client-av">'+ini+'</div>'+
+    '<div><div class="client-name">'+d+'</div>'+(c.company&&c.name?'<div class="client-sub">Contact: '+c.name+'</div>':'')+'</div></div>'+
+    (c.phone?'<div class="client-detail">📞 '+c.phone+'</div>':'')+
+    (c.email?'<div class="client-detail">✉️ '+c.email+'</div>':'')+
+    (c.address?'<div class="client-detail">📍 '+c.address+'</div>':'')+
+    '<div class="client-actions">'+
+    '<button class="client-btn primary" onclick="invFromClient('+c.id+')">+ Invoice</button>'+
+    '<button class="client-btn ghost" onclick="openClientModal('+c.id+')">Edit</button>'+
+    '</div></div>';
+  }).join('');
+}
+function invFromClient(id){
+  var c=clients.find(function(x){return x.id==id;});if(!c)return;
+  editId=null;resetForm();
+  el('n-co').value=c.company||'';el('n-nm').value=c.name||'';
+  el('n-ph').value=c.phone||'';el('n-em').value=c.email||'';
+  el('n-ad').value=c.address||'';
+  if(c.jobType)el('n-jtype').value=c.jobType;
+  // select the chip
+  setTimeout(function(){
+    document.querySelectorAll('.client-chip').forEach(function(chip){
+      if(chip.textContent===cDispName(c))chip.classList.add('selected');
+    });
+  },100);
+  pushPage('page-new');toast('Client loaded!','success');
+}
+function openClientModal(id){
+  clientEditId=id||null;
+  if(id){
+    var c=clients.find(function(x){return x.id==id;});if(!c)return;
+    el('mo-cli-title').textContent='Edit Client';
+    el('cl-name').value=c.name||'';el('cl-co').value=c.company||'';
+    el('cl-ph').value=c.phone||'';el('cl-em').value=c.email||'';
+    el('cl-addr').value=c.address||'';el('cl-jtype').value=c.jobType||'';el('cl-notes').value=c.notes||'';
+  }else{
+    el('mo-cli-title').textContent='Add Client';
+    ['cl-name','cl-co','cl-ph','cl-em','cl-addr','cl-notes'].forEach(function(id){el(id).value='';});
+    el('cl-jtype').value='';
+  }
+  el('mo-client').classList.add('open');
+}
+function saveClient(){
+  var name=g('cl-name');if(!name){toast('Please enter a name.','error');return;}
+  var ex=clientEditId?clients.find(function(x){return x.id==clientEditId;}):null;
+  var c={id:clientEditId||Date.now(),name:name,company:g('cl-co'),email:g('cl-em'),phone:g('cl-ph'),address:g('cl-addr'),jobType:g('cl-jtype'),notes:g('cl-notes'),createdAt:ex?ex.createdAt:new Date().toISOString()};
+  if(clientEditId){var i=clients.findIndex(function(x){return x.id==clientEditId;});if(i>-1)clients[i]=c;}
+  else clients.unshift(c);
+  sv('tbmk_cli',clients);cm('mo-client');renderClients();renderClientChips();
+  toast(clientEditId?'Client updated!':'Client saved!','success');clientEditId=null;
+}
+
+// ── BOOKKEEPING ──
+function renderBK(){
+  var yrs=new Set(invoices.map(function(i){return(i.invDate||'').split('-')[0];}).filter(Boolean));
+  yrs.add(new Date().getFullYear().toString());
+  var arr=Array.from(yrs).sort(function(a,b){return b-a;});
+  el('year-pills').innerHTML=arr.map(function(y){
+    return'<button class="ypill'+(y===bkYear?' active':'')+'" onclick="setBKYear(\''+y+'\',this)">'+y+'</button>';
+  }).join('');
+  var pd=invoices.filter(function(i){return i.status==='paid'&&(i.invDate||'').startsWith(bkYear);});
+  var lt=pd.reduce(function(s,i){return s+(i.labor||0);},0);
+  var mt=pd.reduce(function(s,i){return s+(i.materials||0);},0);
+  var ct=pd.reduce(function(s,i){return s+(i.total||0);},0);
+  el('bk-tax-val').textContent=fm(lt*.2);
+  el('bk-tax-sub').textContent='Based on '+fm(lt)+' labor collected in '+bkYear;
+  el('bk-stats').innerHTML=
+    '<div class="stat-card"><div class="stat-label">Labor</div><div class="stat-val blue">'+fm(lt)+'</div><div class="stat-sub">'+bkYear+' paid</div></div>'+
+    '<div class="stat-card"><div class="stat-label">Materials</div><div class="stat-val amber">'+fm(mt)+'</div><div class="stat-sub">'+bkYear+' paid</div></div>'+
+    '<div class="stat-card"><div class="stat-label">Collected</div><div class="stat-val green">'+fm(ct)+'</div></div>'+
+    '<div class="stat-card"><div class="stat-label">Tax Reserve</div><div class="stat-val red">'+fm(lt*.2)+'</div></div>';
+  var bm=Array(12).fill(null).map(function(){return{l:0,m:0};});
+  pd.forEach(function(i){var mo=parseInt((i.invDate||'').split('-')[1])-1;if(mo>=0&&mo<12){bm[mo].l+=i.labor||0;bm[mo].m+=i.materials||0;}});
+  var mxL=Math.max.apply(null,bm.map(function(m){return m.l;}).concat([1]));
+  var mxM=Math.max.apply(null,bm.map(function(m){return m.m;}).concat([1]));
+  el('bk-labor-bars').innerHTML=bm.map(function(m,i){
+    return'<div class="bar-row"><span class="bar-mo">'+MO[i]+'</span>'+
+    '<div class="bar-track"><div class="bar-fill" style="width:'+(m.l/mxL*100).toFixed(0)+'%;background:var(--blue)"></div></div>'+
+    '<span class="bar-amt" style="color:var(--blue)">'+fm(m.l)+'</span></div>';
+  }).join('');
+  el('bk-mat-bars').innerHTML=bm.map(function(m,i){
+    return'<div class="bar-row"><span class="bar-mo">'+MO[i]+'</span>'+
+    '<div class="bar-track"><div class="bar-fill" style="width:'+(m.m/mxM*100).toFixed(0)+'%;background:var(--amber)"></div></div>'+
+    '<span class="bar-amt" style="color:var(--amber)">'+fm(m.m)+'</span></div>';
+  }).join('');
+  el('bk-inv-list').innerHTML='<div class="sec-title" style="margin-bottom:10px">Paid Invoices</div>'+
+    (pd.length?pd.map(invItem).join(''):'<div class="empty-state"><div class="empty-icon">📊</div><div class="empty-title">No paid invoices for '+bkYear+'</div></div>');
+}
+function setBKYear(y,btn){
+  bkYear=y;
+  document.querySelectorAll('.ypill').forEach(function(p){p.classList.remove('active');});
+  btn.classList.add('active');
+  renderBK();
+}
+
+// ── SETTINGS ──
+function loadSettingsUI(){
+  if(settings.bizName)el('s-bname').value=settings.bizName;
+  if(settings.bizOwner)el('s-owner').value=settings.bizOwner;
+  if(settings.bizPhone)el('s-phone').value=settings.bizPhone;
+  if(settings.bizEmail)el('s-email').value=settings.bizEmail;
+  if(settings.bizAddr)el('s-addr').value=settings.bizAddr;
+  if(settings.nextNum)el('s-nextnum').value=settings.nextNum;
+}
+function saveSettings(){
+  settings={bizName:g('s-bname'),bizOwner:g('s-owner'),bizPhone:g('s-phone'),bizEmail:g('s-email'),bizAddr:g('s-addr'),bizLic:'',nextNum:parseInt(g('s-nextnum'))||24500};
+  sv('tbmk_set',settings);toast('Settings saved!','success');
+}
+
+// ── EXPORT / IMPORT ──
+function exportData(){
+  var b={version:1,exportedAt:new Date().toISOString(),invoices:invoices,clients:clients,settings:settings};
+  var blob=new Blob([JSON.stringify(b,null,2)],{type:'application/json'});
+  var url=URL.createObjectURL(blob);var a=document.createElement('a');a.href=url;
+  a.download='TradeBook_Backup_'+new Date().toISOString().split('T')[0]+'.json';
+  a.click();URL.revokeObjectURL(url);toast('Backup downloaded!','success');
+}
+function triggerImport(){el('import-file').value='';el('import-file').click();}
+function loadImportFile(input){
+  var file=input.files[0];if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      var data=JSON.parse(e.target.result);
+      if(!data.invoices||!data.clients){toast('Not a valid backup file.','error');return;}
+      pendingImport=data;el('mo-import').classList.add('open');
+    }catch(err){toast('Could not read that file.','error');}
+  };
+  reader.readAsText(file);
+}
+function confirmImport(){
+  if(!pendingImport)return;
+  invoices=pendingImport.invoices||[];clients=pendingImport.clients||[];
+  if(pendingImport.settings)settings=pendingImport.settings;
+  sv('tbmk_inv',invoices);sv('tbmk_cli',clients);sv('tbmk_set',settings);
+  loadSettingsUI();cm('mo-import');pendingImport=null;
+  renderHome();renderInvList();renderClients();renderBK();
+  toast('Data imported!','success');
+}
+
+// ── EXCEL ──
+function exportExcel(){
+  if(typeof XLSX==='undefined'){toast('Loading, try again.','error');return;}
+  var pd=invoices.filter(function(i){return i.status==='paid'&&(i.invDate||'').startsWith(bkYear);});
+  if(!pd.length){toast('No paid invoices for '+bkYear,'error');return;}
+  var wb=XLSX.utils.book_new();
+  var lt=pd.reduce(function(s,i){return s+(i.labor||0);},0);var mt=pd.reduce(function(s,i){return s+(i.materials||0);},0);
+  var sd=[['McKee Maintenance & Repair, LLC — '+bkYear],[''],['Labor',lt],['Materials',mt],['Total',lt+mt],['Tax Reserve (20%)',lt*.2],[''],['Month','Labor','Materials']];
+  var bm=Array(12).fill(null).map(function(){return{l:0,m:0};});
+  pd.forEach(function(i){var mo=parseInt((i.invDate||'').split('-')[1])-1;if(mo>=0&&mo<12){bm[mo].l+=i.labor||0;bm[mo].m+=i.materials||0;}});
+  MO.forEach(function(mn,i){sd.push([mn,bm[i].l,bm[i].m]);});
+  var ws1=XLSX.utils.aoa_to_sheet(sd);XLSX.utils.book_append_sheet(wb,ws1,'Summary');
+  var det=[['Invoice #','Client','Job Type','Date','Labor','Materials','Tax','Total','Tax Reserve']];
+  pd.forEach(function(i){det.push([i.number,dispName(i),i.jobType||'',i.invDate||'',i.labor||0,i.materials||0,i.tax||0,i.total||0,(i.labor||0)*.2]);});
+  var ws2=XLSX.utils.aoa_to_sheet(det);XLSX.utils.book_append_sheet(wb,ws2,'Invoices');
+  XLSX.writeFile(wb,'McKee_'+bkYear+'.xlsx');toast('Excel downloaded!','success');
+}
+
+// ── INIT ──
+renderHome();
+renderClientChips();
+</script>
+</body>
+</html>
